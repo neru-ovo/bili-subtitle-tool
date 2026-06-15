@@ -7,10 +7,7 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(express.json())
-
-if (!process.env.VERCEL) {
-  app.use(express.static(path.join(__dirname, 'public')))
-}
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/api/status', (req, res) => {
   res.json({
@@ -43,11 +40,9 @@ app.post('/api/subtitle', async (req, res) => {
   }
 })
 
-if (process.env.VERCEL !== '1') {
-  app.listen(PORT, () => {
-    console.log(`B站字幕工具已启动: http://localhost:${PORT}`)
-    console.log(`B站: ${process.env.BILI_SESSDATA ? '已登录' : '未登录'}`)
-  })
-}
+app.listen(PORT, () => {
+  console.log(`B站字幕工具已启动: http://localhost:${PORT}`)
+  console.log(`B站: ${process.env.BILI_SESSDATA ? '已登录' : '未登录'}`)
+})
 
 module.exports = app
