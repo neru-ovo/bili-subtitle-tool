@@ -1,0 +1,14 @@
+{
+  "name": "bili-subtitle-tool",
+  "version": "1.0.0",
+  "description": "B站字幕获取工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "dotenv": "^16.4.0"
+  }
+}
