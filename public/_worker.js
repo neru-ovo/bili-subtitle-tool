@@ -5,21 +5,21 @@ function genBuvid3() {
   return `${hex()}-${hex()}-${hex()}-${hex()}-${hex()}infoc`
 }
 
-function getCookie(biliSessdata: string | undefined) {
+function getCookie(biliSessdata) {
   const raw = biliSessdata || ''
   if (!raw) return ''
   const buvid3 = genBuvid3()
   return `SESSDATA=${raw}; buvid3=${buvid3}; b_nut=${Math.floor(Date.now()/1000)}`
 }
 
-function extractBvid(input: string) {
+function extractBvid(input) {
   const match = input.match(/(BV[a-zA-Z0-9]{10})/)
   if (!match) throw new Error('无法从输入中提取BV号，请检查链接是否正确')
   return match[1]
 }
 
-async function fetchJSON(url: string, cookie = '') {
-  const headers: Record<string, string> = {
+async function fetchJSON(url, cookie = '') {
+  const headers = {
     'User-Agent': USER_AGENT,
     'Referer': 'https://www.bilibili.com'
   }
@@ -29,7 +29,7 @@ async function fetchJSON(url: string, cookie = '') {
   return await resp.json()
 }
 
-function getMixinKey(keys: string) {
+function getMixinKey(keys) {
   const mixinKeyEncTab = [
     46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35,
     27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 37, 12, 52, 56, 6,
@@ -39,14 +39,14 @@ function getMixinKey(keys: string) {
   return mixinKeyEncTab.map(i => keys[i]).join('').slice(0, 32)
 }
 
-async function getWbiKeys(cookie: string) {
+async function getWbiKeys(cookie) {
   const data = await fetchJSON('https://api.bilibili.com/x/web-interface/nav', cookie)
   if (data.code !== 0) throw new Error('获取WBI密钥失败')
   const { img_key, sub_key } = data.data.wbi_img
   return getMixinKey(img_key + sub_key)
 }
 
-function md5(str: string): string {
+function md5(str) {
   const md5Table = [
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
     0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
@@ -81,12 +81,12 @@ function md5(str: string): string {
     0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF,
     0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
   ]
-  
-  const rotateLeft = (lValue: number, iShiftBits: number): number => {
+
+  const rotateLeft = (lValue, iShiftBits) => {
     return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits))
   }
-  
-  const addUnsigned = (lX: number, lY: number): number => {
+
+  const addUnsigned = (lX, lY) => {
     const lX4 = (lX & 0xFFFFFFFF) >>> 16
     const lX8 = lX & 0xFFFF
     const lY4 = (lY & 0xFFFFFFFF) >>> 16
@@ -96,47 +96,32 @@ function md5(str: string): string {
     lResult = (lResult & 0xFFFF) + ((lX4 + lY4 + lCarry) << 16)
     return lResult & 0xFFFFFFFF
   }
-  
-  const F = (x: number, y: number, z: number): number => {
-    return (x & y) | (~x & z)
-  }
-  
-  const G = (x: number, y: number, z: number): number => {
-    return (x & z) | (y & ~z)
-  }
-  
-  const H = (x: number, y: number, z: number): number => {
-    return x ^ y ^ z
-  }
-  
-  const I = (x: number, y: number, z: number): number => {
-    return y ^ (x | ~z)
-  }
-  
-  const FF = (a: number, b: number, c: number, d: number, x: number, s: number, ac: number): number => {
+
+  const F = (x, y, z) => { return (x & y) | (~x & z) }
+  const G = (x, y, z) => { return (x & z) | (y & ~z) }
+  const H = (x, y, z) => { return x ^ y ^ z }
+  const I = (x, y, z) => { return y ^ (x | ~z) }
+
+  const FF = (a, b, c, d, x, s, ac) => {
     a = addUnsigned(a, addUnsigned(addUnsigned(F(b, c, d), x), ac))
     return addUnsigned(rotateLeft(a, s), b)
   }
-  
-  const GG = (a: number, b: number, c: number, d: number, x: number, s: number, ac: number): number => {
+  const GG = (a, b, c, d, x, s, ac) => {
     a = addUnsigned(a, addUnsigned(addUnsigned(G(b, c, d), x), ac))
     return addUnsigned(rotateLeft(a, s), b)
   }
-  
-  const HH = (a: number, b: number, c: number, d: number, x: number, s: number, ac: number): number => {
+  const HH = (a, b, c, d, x, s, ac) => {
     a = addUnsigned(a, addUnsigned(addUnsigned(H(b, c, d), x), ac))
     return addUnsigned(rotateLeft(a, s), b)
   }
-  
-  const II = (a: number, b: number, c: number, d: number, x: number, s: number, ac: number): number => {
+  const II = (a, b, c, d, x, s, ac) => {
     a = addUnsigned(a, addUnsigned(addUnsigned(I(b, c, d), x), ac))
     return addUnsigned(rotateLeft(a, s), b)
   }
-  
-  const convertToWordArray = (str: string): number[] => {
+
+  const convertToWordArray = (str) => {
     const lWordCount = ((str.length + 8) >> 6) + 1
     const lWordArray = new Array(lWordCount)
-    let lBytePosition = 0
     let lByteCount = 0
     while (lByteCount < str.length) {
       const lWordCount2 = (lByteCount >> 2)
@@ -150,8 +135,8 @@ function md5(str: string): string {
     lWordArray[lWordCount - 1] = (str.length << 3) | ((str.length >> 29) & 0xFF)
     return lWordArray
   }
-  
-  const wordToHex = (lValue: number): string => {
+
+  const wordToHex = (lValue) => {
     const wordToHexValue = '0123456789abcdef'
     let lByte
     let str = ''
@@ -161,20 +146,20 @@ function md5(str: string): string {
     }
     return str
   }
-  
+
   const x = convertToWordArray(str)
   let a = 0x67452301
   let b = 0xEFCDAB89
   let c = 0x98BADCFE
   let d = 0x10325476
   const N = x.length
-  
+
   for (let i = 0; i < N; i += 16) {
     const AA = a
     const BB = b
     const CC = c
     const DD = d
-    
+
     a = FF(a, b, c, d, x[i + 0], 7, 0xD76AA478)
     d = FF(d, a, b, c, x[i + 1], 12, 0xE8C7B756)
     c = FF(c, d, a, b, x[i + 2], 17, 0x242070DB)
@@ -191,7 +176,7 @@ function md5(str: string): string {
     d = FF(d, a, b, c, x[i + 13], 12, 0xFD987193)
     c = FF(c, d, a, b, x[i + 14], 17, 0xA679438E)
     b = FF(b, c, d, a, x[i + 15], 22, 0x49B40821)
-    
+
     a = GG(a, b, c, d, x[i + 1], 5, 0xF61E2562)
     d = GG(d, a, b, c, x[i + 6], 9, 0xC040B340)
     c = GG(c, d, a, b, x[i + 11], 14, 0x265E5A51)
@@ -208,7 +193,7 @@ function md5(str: string): string {
     d = GG(d, a, b, c, x[i + 2], 9, 0xFCEFA3F8)
     c = GG(c, d, a, b, x[i + 7], 14, 0x676F02D9)
     b = GG(b, c, d, a, x[i + 12], 20, 0x8D2A4C8A)
-    
+
     a = HH(a, b, c, d, x[i + 5], 4, 0xFFFA3942)
     d = HH(d, a, b, c, x[i + 8], 11, 0x8771F681)
     c = HH(c, d, a, b, x[i + 11], 16, 0x6D9D6122)
@@ -225,7 +210,7 @@ function md5(str: string): string {
     d = HH(d, a, b, c, x[i + 12], 11, 0xE6DB99E5)
     c = HH(c, d, a, b, x[i + 15], 16, 0x1FA27CF8)
     b = HH(b, c, d, a, x[i + 2], 23, 0xC4AC5665)
-    
+
     a = II(a, b, c, d, x[i + 0], 6, 0xF4292244)
     d = II(d, a, b, c, x[i + 7], 10, 0x432AFF97)
     c = II(c, d, a, b, x[i + 14], 15, 0xAB9423A7)
@@ -242,35 +227,34 @@ function md5(str: string): string {
     d = II(d, a, b, c, x[i + 11], 10, 0xBD3AF235)
     c = II(c, d, a, b, x[i + 2], 15, 0x2AD7D2BB)
     b = II(b, c, d, a, x[i + 9], 21, 0xEB86D391)
-    
+
     a = addUnsigned(a, AA)
     b = addUnsigned(b, BB)
     c = addUnsigned(c, CC)
     d = addUnsigned(d, DD)
   }
-  
+
   return wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d)
 }
 
-async function encryptWbi(params: Record<string, string | number>, mixinKey: string) {
+async function encryptWbi(params, mixinKey) {
   const sorted = Object.keys(params).sort().reduce((acc, key) => {
     acc[key] = params[key]
     return acc
-  }, {} as Record<string, string | number>)
-  const query = new URLSearchParams(sorted as Record<string, string>).toString()
+  }, {})
+  const query = new URLSearchParams(sorted).toString()
   const wts = Math.floor(Date.now() / 1000)
   const toSign = query + wts + mixinKey
   const w_rid = md5(toSign)
   return { w_rid, wts }
 }
 
-async function fetchVideoInfo(bvid: string, cookie: string) {
+async function fetchVideoInfo(bvid, cookie) {
   return await fetchJSON(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`, cookie)
 }
 
-function parseUploadedSubtitles(videoInfo: unknown) {
-  const data = videoInfo as Record<string, unknown>
-  const list = data.data?.subtitle?.list as Array<Record<string, unknown>> || []
+function parseUploadedSubtitles(videoInfo) {
+  const list = videoInfo.data?.subtitle?.list || []
   if (!list || list.length === 0) return []
   return list.map(s => ({
     id: s.id,
@@ -281,7 +265,7 @@ function parseUploadedSubtitles(videoInfo: unknown) {
   }))
 }
 
-async function fetchAISubtitles(aid: number, cid: number, cookie: string) {
+async function fetchAISubtitles(aid, cid, cookie) {
   if (!cookie) return []
 
   try {
@@ -296,7 +280,7 @@ async function fetchAISubtitles(aid: number, cid: number, cookie: string) {
     )
 
     if (data.code !== 0) return []
-    const subtitles = data.data?.subtitle?.subtitles as Array<Record<string, unknown>> || []
+    const subtitles = data.data?.subtitle?.subtitles || []
     if (!subtitles || subtitles.length === 0) return []
 
     return subtitles.map(s => ({
@@ -311,7 +295,7 @@ async function fetchAISubtitles(aid: number, cid: number, cookie: string) {
   }
 }
 
-async function downloadSubtitle(url: string) {
+async function downloadSubtitle(url) {
   const resp = await fetch(url, {
     headers: { 'User-Agent': USER_AGENT, 'Referer': 'https://www.bilibili.com' }
   })
@@ -319,11 +303,11 @@ async function downloadSubtitle(url: string) {
   return await resp.json()
 }
 
-function subtitleBodyToText(body: Array<Record<string, string>>) {
+function subtitleBodyToText(body) {
   return body.map(item => item.content?.trim()).filter(Boolean).join(' ')
 }
 
-async function getSubtitles(input: string, biliSessdata?: string) {
+async function getSubtitles(input, biliSessdata) {
   const bvid = extractBvid(input)
   const cookie = getCookie(biliSessdata)
   const videoInfo = await fetchVideoInfo(bvid, cookie)
@@ -344,11 +328,11 @@ async function getSubtitles(input: string, biliSessdata?: string) {
   if (allSubtitles.length === 0) {
     const hint = cookie
       ? '该视频没有找到字幕（包括UP主上传字幕和AI字幕）'
-      : '未找到字幕。B站需要登录才能获取大部分视频的字幕，请在项目目录下的 .env 文件中添加 BILI_SESSDATA=你的SESSDATA值'
+      : '未找到字幕。B站需要登录才能获取大部分视频的字幕，请配置 BILI_SESSDATA 环境变量'
     return { bvid, title, source: null, subtitles: [], text: '', hint }
   }
 
-  const results: Array<Record<string, unknown>> = []
+  const results = []
   for (const sub of allSubtitles) {
     try {
       const data = await downloadSubtitle(sub.url)
@@ -382,10 +366,19 @@ async function getSubtitles(input: string, biliSessdata?: string) {
   }
 }
 
-export async function onRequestPost(context: { request: Request, env?: Record<string, string> }) {
+async function handleApiStatus(env) {
+  return new Response(JSON.stringify({
+    ok: true,
+    biliLoggedIn: !!env?.BILI_SESSDATA
+  }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+async function handleApiSubtitle(request, env) {
   try {
-    const { url } = await context.request.json()
-    const biliSessdata = context.env?.BILI_SESSDATA
+    const { url } = await request.json()
+    const biliSessdata = env?.BILI_SESSDATA
 
     if (!url) {
       return new Response(JSON.stringify({ error: '请提供B站视频链接' }), {
@@ -395,9 +388,9 @@ export async function onRequestPost(context: { request: Request, env?: Record<st
     }
 
     const data = await getSubtitles(url, biliSessdata)
-    
+
     if (!data.text) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: data.hint || '该视频没有找到字幕',
         videoTitle: data.title
       }), {
@@ -415,9 +408,26 @@ export async function onRequestPost(context: { request: Request, env?: Record<st
     })
   } catch (error) {
     console.error('获取字幕失败:', error)
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : '获取字幕失败，请重试' }), {
+    return new Response(JSON.stringify({ error: error.message || '获取字幕失败，请重试' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
+  }
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url)
+    const path = url.pathname
+
+    if (path === '/api/status') {
+      return handleApiStatus(env)
+    }
+
+    if (path === '/api/subtitle' && request.method === 'POST') {
+      return handleApiSubtitle(request, env)
+    }
+
+    return env.ASSETS.fetch(request)
   }
 }
