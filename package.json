@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "deploy": "npx wrangler pages deploy public --project-name bili-subtitle-tool"
+    "deploy": "npx wrangler pages deploy . --project-name bili-subtitle-tool"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
