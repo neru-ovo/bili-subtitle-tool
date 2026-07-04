@@ -1,13 +1,2 @@
 name = "bili-subtitle-tool"
-type = "pages"
 compatibility_date = "2024-12-01"
-
-[build]
-command = ""
-publish = "."
-
-[env.production]
-name = "bili-subtitle-tool"
-
-[env.development]
-name = "bili-subtitle-tool-dev"

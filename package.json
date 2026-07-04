@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "deploy": "wrangler pages deploy"
+    "deploy": "wrangler pages deploy public"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
