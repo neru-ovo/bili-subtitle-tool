@@ -366,19 +366,10 @@ async function getSubtitles(input, biliSessdata) {
   }
 }
 
-async function handleApiStatus(env) {
-  return new Response(JSON.stringify({
-    ok: true,
-    biliLoggedIn: !!env?.BILI_SESSDATA
-  }), {
-    headers: { 'Content-Type': 'application/json' },
-  })
-}
-
-async function handleApiSubtitle(request, env) {
+export async function onRequestPost(context) {
   try {
-    const { url } = await request.json()
-    const biliSessdata = env?.BILI_SESSDATA
+    const { url } = await context.request.json()
+    const biliSessdata = context.env?.BILI_SESSDATA
 
     if (!url) {
       return new Response(JSON.stringify({ error: '请提供B站视频链接' }), {
@@ -412,22 +403,5 @@ async function handleApiSubtitle(request, env) {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
-  }
-}
-
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url)
-    const path = url.pathname
-
-    if (path === '/api/status') {
-      return handleApiStatus(env)
-    }
-
-    if (path === '/api/subtitle' && request.method === 'POST') {
-      return handleApiSubtitle(request, env)
-    }
-
-    return env.ASSETS.fetch(request)
   }
 }
