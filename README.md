@@ -38,23 +38,53 @@ npm start
 
 打开 `http://localhost:3000`
 
-## 部署到 Vercel
+## 部署到 Cloudflare Pages
 
-1. 推送代码到 GitHub
-2. 在 Vercel 导入该仓库
-3. 在环境变量中添加 `BILI_SESSDATA`
-4. 部署
+本项目 API 依赖 Cloudflare Pages Functions（`functions/api/`），**不能只部署 `public` 静态目录**。
 
-> SESSDATA 有时效，过期后需在 Vercel 项目设置中更新。
+### 构建设置（重要）
+
+你的 Cloudflare 界面是 **新版 Workers Builds**，没有单独的「构建输出目录」字段。静态输出目录在 `wrangler.toml` 里配置（`pages_build_output_dir = "./public"`），通过 **部署命令** 生效。
+
+在 **设置 → 构建 → 构建配置**（点铅笔图标编辑）中填写：
+
+| 配置项 | 正确值 | 说明 |
+|--------|--------|------|
+| 构建命令 | 留空 | 或 `echo 'no build needed'` |
+| **部署命令** | `npx wrangler pages deploy` | **不要用 `echo 'deploy done'`** |
+| 版本命令 | 留空 | 或 `echo 'no build needed'` |
+| **根目录** | `/` | 表示仓库根目录，保持现状即可 |
+
+> **构建监视路径**（显示 `包括所有路径`）只控制「哪些文件改动会触发重建」，**不是**输出目录，不用改。
+
+> 若部署命令只是 `echo`，Cloudflare 不会上传 `public/` 和 `functions/`，`/api/subtitle` 就会 404。
+
+### 环境变量（重要）
+
+`BILI_SESSDATA` 必须配置在 **设置 → 环境变量**（运行时变量），不能只放在「构建变量」里。
+
+1. 进入 **设置 → 环境变量**
+2. 为 **Production**（建议 Preview 也加）添加：`BILI_SESSDATA` = 你的 SESSDATA 值
+3. 保存后重新部署
+
+部署后可用 `https://你的域名/api/status` 检查：`biliLoggedIn` 应为 `true`。
+
+### 命令行部署
+
+```bash
+npm run deploy
+```
+
+> SESSDATA 有时效，过期后需在 Cloudflare 项目设置中更新。
 
 ## 项目结构
 
 ```
-├── api/index.js        # Vercel 入口
-├── server.js           # Express 服务端
-├── src/bili-api.js     # B站字幕爬取
-├── public/             # 前端页面
-├── vercel.json         # Vercel 配置
+├── functions/api/      # Cloudflare Pages Functions（/api/subtitle、/api/status）
+├── server.js           # Express 本地开发服务端
+├── src/bili-api.js     # B站字幕爬取（本地开发用）
+├── public/             # 前端静态页面
+├── wrangler.toml       # Cloudflare 配置
 └── .env.example        # 配置模板
 ```
 
