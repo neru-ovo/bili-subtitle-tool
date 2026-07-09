@@ -5,11 +5,19 @@ function genBuvid3() {
   return `${hex()}-${hex()}-${hex()}-${hex()}-${hex()}infoc`
 }
 
+function genBuvid4() {
+  const hex = () => Math.random().toString(16).substring(2, 10)
+  return `${hex()}${hex()}${hex()}${hex()}xxxx${hex()}xxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+}
+
+function getBaseCookie() {
+  return `buvid3=${genBuvid3()}; buvid4=${genBuvid4()}; b_nut=${Math.floor(Date.now()/1000)}`
+}
+
 function getCookie(biliSessdata) {
   const raw = biliSessdata || ''
-  if (!raw) return ''
-  const buvid3 = genBuvid3()
-  return `SESSDATA=${raw}; buvid3=${buvid3}; b_nut=${Math.floor(Date.now()/1000)}`
+  if (!raw) return getBaseCookie()
+  return `SESSDATA=${raw}; ${getBaseCookie()}`
 }
 
 function extractBvid(input) {
@@ -27,6 +35,7 @@ async function fetchJSON(url, cookie = '') {
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
   }
   if (cookie) headers['Cookie'] = cookie
+  else headers['Cookie'] = getBaseCookie()
   const resp = await fetch(url, { headers })
   if (!resp.ok) throw new Error(`B站API请求失败: ${resp.status}`)
   return await resp.json()
@@ -252,8 +261,8 @@ async function encryptWbi(params, mixinKey) {
   return { w_rid, wts }
 }
 
-async function fetchVideoInfo(bvid, cookie) {
-  return await fetchJSON(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`, cookie)
+async function fetchVideoInfo(bvid) {
+  return await fetchJSON(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`, getBaseCookie())
 }
 
 function parseUploadedSubtitles(videoInfo) {
@@ -319,7 +328,7 @@ function subtitleBodyToText(body) {
 async function getSubtitles(input, biliSessdata) {
   const bvid = extractBvid(input)
   const cookie = getCookie(biliSessdata)
-  const videoInfo = await fetchVideoInfo(bvid, cookie)
+  const videoInfo = await fetchVideoInfo(bvid)
 
   const aid = videoInfo.data?.aid
   const cid = videoInfo.data?.cid
@@ -439,6 +448,10 @@ export default {
     }
 
     // Static assets (served from public/)
-    return env.ASSETS.fetch(request)
+    try {
+      return await env.ASSETS.fetch(request)
+    } catch (e) {
+      return new Response('ASSETS error: ' + e.message, { status: 500 })
+    }
   }
 }
