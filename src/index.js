@@ -21,7 +21,10 @@ function extractBvid(input) {
 async function fetchJSON(url, cookie = '') {
   const headers = {
     'User-Agent': USER_AGENT,
-    'Referer': 'https://www.bilibili.com'
+    'Referer': 'https://www.bilibili.com',
+    'Origin': 'https://www.bilibili.com',
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
   }
   if (cookie) headers['Cookie'] = cookie
   const resp = await fetch(url, { headers })
@@ -297,7 +300,13 @@ async function fetchAISubtitles(aid, cid, cookie) {
 
 async function downloadSubtitle(url) {
   const resp = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT, 'Referer': 'https://www.bilibili.com' }
+    headers: {
+      'User-Agent': USER_AGENT,
+      'Referer': 'https://www.bilibili.com',
+      'Origin': 'https://www.bilibili.com',
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    }
   })
   if (!resp.ok) throw new Error(`字幕下载失败: ${resp.status}`)
   return await resp.json()
