@@ -366,7 +366,7 @@ async function getSubtitles(input, biliSessdata) {
   }
 }
 
-async function handleStatus(request, env) {
+async function handleStatus(env) {
   return new Response(JSON.stringify({
     ok: true,
     biliLoggedIn: !!env?.BILI_SESSDATA
@@ -420,15 +420,16 @@ export default {
     const url = new URL(request.url)
     const path = url.pathname
 
+    // API routes
     if (path === '/api/status' && request.method === 'GET') {
-      return handleStatus(request, env)
+      return handleStatus(env)
     }
 
     if (path === '/api/subtitle' && request.method === 'POST') {
       return handleSubtitle(request, env)
     }
 
-    // Fall through to static assets
+    // Static assets (served from public/)
     return env.ASSETS.fetch(request)
   }
 }
