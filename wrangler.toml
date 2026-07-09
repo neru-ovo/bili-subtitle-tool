@@ -2,8 +2,5 @@ name = "bili-subtitle-tool"
 compatibility_date = "2024-12-01"
 main = "src/index.js"
 
-[vars]
-BILI_SESSDATA = "e7e9fbf1%2C1799133360%2C34be2%2A72CjBWQSV1WvgOkjwOn7vHoNASEJKbkNJLm3TplNjtbQjJurW6vcEd7Idbfjih42YReuASVjlZa05KNnBXalYtamRta1o4Rzg2ZG1ua1luQUp3MkZCYnhXRk9jaF9XVzRxT1BsdzBDRHJxQ3pwVWFJRFZiRloxd2pua0FybVhlYzBiUEgxbXRma2F3IIEC"
-
 [assets]
 directory = "./public"
